@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="gu">
 <head>
     <meta charset="UTF-8">
@@ -14,6 +14,7 @@
         }
         h1 { font-size: 3em; margin-bottom: 10px; }
         p.subtitle { font-size: 1.2em; margin-top: 0; color: #FFF8DC; }
+        
         #chat-box {
             background-color: rgba(255, 255, 255, 0.1);
             padding: 20px;
@@ -23,6 +24,7 @@
             min-height: 150px;
             border: 2px solid #FFD700;
         }
+        
         button {
             background-color: #FFD700;
             color: #000080;
@@ -33,36 +35,56 @@
             cursor: pointer;
             font-weight: bold;
             transition: 0.3s;
+            margin-top: 20px;
         }
         button:hover { background-color: #FFF8DC; }
+        
         #status { margin-top: 15px; font-style: italic; color: #ccc; }
+        #main-interface { display: none; } /* શરૂઆતમાં છુપાવેલું રહેશે */
     </style>
 </head>
 <body>
 
     <h1>વાણી AI</h1>
     <p class="subtitle">તમારી પોતાની સ્માર્ટ આસિસ્ટન્ટ</p>
-    <button id="talk-btn" onclick="startListening()">વાણી સાથે વાત કરો 🎤</button>
-    <div id="status">માઈક ચાલુ કરવા માટે બટન દબાવો...</div>
+
+    <!-- શરૂઆતનું બટન -->
+    <button id="start-vani-btn" onclick="initVani()">વાણી શરૂ કરો 🌟</button>
     
-    <div id="chat-box">
-        <p id="user-text">તમારો અવાજ અહીં દેખાશે...</p>
-        <hr style="border-color: #FFD700;">
-        <p id="jarvis-response">વાણીનો જવાબ અહીં આવશે...</p>
+    <!-- મુખ્ય વાતચીતનો ભાગ -->
+    <div id="main-interface">
+        <button id="talk-btn" onclick="startListening()">વાણી સાથે વાત કરો 🎤</button>
+        <div id="status">માઈક ચાલુ કરવા માટે બટન દબાવો...</div>
+        
+        <div id="chat-box">
+            <p id="user-text">તમારો અવાજ અહીં દેખાશે...</p>
+            <hr style="border-color: #FFD700;">
+            <p id="jarvis-response">વાણીનો જવાબ અહીં આવશે...</p>
+        </div>
     </div>
 
     <script>
-        // તમે આપેલી Gemini API Key
+        // જો એરર આવે તો આ કી બદલીને AIza... વાળી નવી કી અહીં મૂકવી
         const API_KEY = "AQ.Ab8RN6JeYYcX_HUdH21nlT1rlDQIHSCfOAhTnjDeMp-y9fdyVw"; 
 
         const statusText = document.getElementById("status");
         const userText = document.getElementById("user-text");
         const jarvisResponse = document.getElementById("jarvis-response");
 
-        // Web Speech API (સાંભળવા માટે)
+        // Web Speech API
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
-        recognition.lang = 'gu-IN'; // ગુજરાતી ભાષા 
+        recognition.lang = 'gu-IN';
+
+        // પેજ ખુલે ત્યારે પહેલો અવાજ
+        function initVani() {
+            document.getElementById('start-vani-btn').style.display = 'none';
+            document.getElementById('main-interface').style.display = 'block';
+            
+            const welcomeMsg = "સર, તમારો આજનો દિવસ કેવો છે?";
+            jarvisResponse.innerText = welcomeMsg;
+            speakText(welcomeMsg);
+        }
 
         function startListening() {
             recognition.start();
@@ -84,10 +106,9 @@
         };
 
         async function fetchGeminiResponse(text) {
-           const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=" + API_KEY;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
             
-            // વાણીનું વ્યક્તિત્વ (Personality) સેટ કર્યું છે
-            const promptText = "તારું નામ વાણી (Vani) છે. તું એક ખૂબ જ હોશિયાર, નમ્ર અને મીઠી ભાષામાં વાત કરતી આસિસ્ટન્ટ છે. તારે ટૂંકમાં અને સ્પષ્ટ ગુજરાતીમાં જવાબ આપવાનો છે. મારો પ્રશ્ન: " + text;
+            const promptText = "તારું નામ વાણી (Vani) છે. તું એક હોશિયાર, નમ્ર અને મીઠી ભાષામાં વાત કરતી આસિસ્ટન્ટ છે. તારે ટૂંકમાં અને સ્પષ્ટ ગુજરાતીમાં જ જવાબ આપવાનો છે. મારો પ્રશ્ન: " + text;
 
             const data = {
                 contents: [{ parts: [{ text: promptText }] }]
@@ -100,6 +121,10 @@
                     body: JSON.stringify(data)
                 });
                 
+                if (!response.ok) {
+                    throw new Error("API Key ખોટી છે અથવા કનેક્શન નથી.");
+                }
+
                 const result = await response.json();
                 const aiText = result.candidates[0].content.parts[0].text;
                 
@@ -109,28 +134,20 @@
                 speakText(aiText);
                 
             } catch (error) {
-                jarvisResponse.innerText = "કોઈ ભૂલ આવી. ઇન્ટરનેટ કનેક્શન કે API કી ચેક કરો.";
+                jarvisResponse.innerText = "કોઈ ભૂલ આવી. કૃપા કરીને નવી 'AIza...' થી શરૂ થતી API કી નાખીને ચેક કરો.";
             }
         }
 
-        // મધુર અને મીઠા અવાજ માટેનું સેટિંગ
         function speakText(text) {
-            // વોઇસ એન્જિનને લોડ થવા માટે થોડો સમય આપવો જરૂરી છે
             let voices = window.speechSynthesis.getVoices();
-            
             const speech = new SpeechSynthesisUtterance();
             speech.text = text;
             speech.lang = 'gu-IN'; 
-            
-            // અવાજ પાતળો અને યુવાન સ્ત્રી જેવો કરવા માટે પિચ (pitch) વધારી છે
-            speech.pitch = 1.3; 
-            // બોલવાની ઝડપ એકદમ નોર્મલ રાખી છે જેથી સ્પષ્ટ સમજાય
+            speech.pitch = 1.4; // મધુર અને સ્ત્રી જેવો અવાજ
             speech.rate = 1.0;  
-            
             window.speechSynthesis.speak(speech);
         }
 
-        // બ્રાઉઝર ઓપન થાય ત્યારે વોઇસ લિસ્ટ લોડ કરવા માટે
         window.speechSynthesis.onvoiceschanged = function() {
             window.speechSynthesis.getVoices();
         };
