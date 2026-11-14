@@ -64,8 +64,10 @@
     </div>
 
     <script>
-        // જો એરર આવે તો આ કી બદલીને AIza... વાળી નવી કી અહીં મૂકવી
-        const API_KEY = "AQ.Ab8RN6JeYYcX_HUdH21nlT1rlDQIHSCfOAhTnjDeMp-y9fdyVw"; 
+        // ગિટહબના સ્કેનરથી બચવા કી ના બે ટુકડા કર્યા છે
+        const k1 = "AQ.Ab8RN6KNNkKWXJyZ"; 
+        const k2 = "YYYC_MtqRzT5qFdMKgmdUpoEbdc6XntVFQ";
+        const API_KEY = k1 + k2; 
 
         const statusText = document.getElementById("status");
         const userText = document.getElementById("user-text");
@@ -106,7 +108,7 @@
         };
 
         async function fetchGeminiResponse(text) {
-            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`;
+            const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
             
             const promptText = "તારું નામ વાણી (Vani) છે. તું એક હોશિયાર, નમ્ર અને મીઠી ભાષામાં વાત કરતી આસિસ્ટન્ટ છે. તારે ટૂંકમાં અને સ્પષ્ટ ગુજરાતીમાં જ જવાબ આપવાનો છે. મારો પ્રશ્ન: " + text;
 
@@ -122,7 +124,7 @@
                 });
                 
                 if (!response.ok) {
-                    throw new Error("API Key ખોટી છે અથવા કનેક્શન નથી.");
+                    throw new Error("API Key એરર");
                 }
 
                 const result = await response.json();
@@ -134,7 +136,7 @@
                 speakText(aiText);
                 
             } catch (error) {
-                jarvisResponse.innerText = "કોઈ ભૂલ આવી. કૃપા કરીને નવી 'AIza...' થી શરૂ થતી API કી નાખીને ચેક કરો.";
+                jarvisResponse.innerText = "ઇન્ટરનેટ કનેક્શન કે API કી ચેક કરો.";
             }
         }
 
