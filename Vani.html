@@ -5,42 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>વાણી (Vani) AI</title>
     <style>
-        body {
-            background-color: #000080; /* Navy Blue */
-            color: #FFD700; /* Gold */
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            padding: 50px;
-        }
+        body { background-color: #000080; color: #FFD700; font-family: 'Segoe UI', sans-serif; text-align: center; padding: 50px; }
         h1 { font-size: 3em; margin-bottom: 10px; }
         p.subtitle { font-size: 1.2em; margin-top: 0; color: #FFF8DC; }
-        
-        #chat-box {
-            background-color: rgba(255, 255, 255, 0.1);
-            padding: 20px;
-            border-radius: 15px;
-            margin: 20px auto;
-            max-width: 600px;
-            min-height: 150px;
-            border: 2px solid #FFD700;
-        }
-        
-        button {
-            background-color: #FFD700;
-            color: #000080;
-            font-size: 1.5em;
-            padding: 15px 30px;
-            border: none;
-            border-radius: 50px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.3s;
-            margin-top: 20px;
-        }
-        button:hover { background-color: #FFF8DC; }
-        
+        #chat-box { background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 15px; margin: 20px auto; max-width: 600px; min-height: 150px; border: 2px solid #FFD700; }
+        button { background-color: #FFD700; color: #000080; font-size: 1.5em; padding: 15px 30px; border: none; border-radius: 50px; cursor: pointer; font-weight: bold; margin-top: 20px; }
         #status { margin-top: 15px; font-style: italic; color: #ccc; }
-        #main-interface { display: none; } /* શરૂઆતમાં છુપાવેલું રહેશે */
+        #main-interface { display: none; }
     </style>
 </head>
 <body>
@@ -48,10 +19,8 @@
     <h1>વાણી AI</h1>
     <p class="subtitle">તમારી પોતાની સ્માર્ટ આસિસ્ટન્ટ</p>
 
-    <!-- શરૂઆતનું બટન -->
     <button id="start-vani-btn" onclick="initVani()">વાણી શરૂ કરો 🌟</button>
     
-    <!-- મુખ્ય વાતચીતનો ભાગ -->
     <div id="main-interface">
         <button id="talk-btn" onclick="startListening()">વાણી સાથે વાત કરો 🎤</button>
         <div id="status">માઈક ચાલુ કરવા માટે બટન દબાવો...</div>
@@ -64,7 +33,6 @@
     </div>
 
     <script>
-        // ગિટહબના સ્કેનરથી બચવા કી ના બે ટુકડા કર્યા છે
         const k1 = "AQ.Ab8RN6KNNkKWXJyZ"; 
         const k2 = "YYYC_MtqRzT5qFdMKgmdUpoEbdc6XntVFQ";
         const API_KEY = k1 + k2; 
@@ -73,16 +41,13 @@
         const userText = document.getElementById("user-text");
         const jarvisResponse = document.getElementById("jarvis-response");
 
-        // Web Speech API
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         const recognition = new SpeechRecognition();
         recognition.lang = 'gu-IN';
 
-        // પેજ ખુલે ત્યારે પહેલો અવાજ
         function initVani() {
             document.getElementById('start-vani-btn').style.display = 'none';
             document.getElementById('main-interface').style.display = 'block';
-            
             const welcomeMsg = "સર, તમારો આજનો દિવસ કેવો છે?";
             jarvisResponse.innerText = welcomeMsg;
             speakText(welcomeMsg);
@@ -98,23 +63,16 @@
             const transcript = event.results[0][0].transcript;
             userText.innerText = "તમે કહ્યું: " + transcript;
             statusText.innerText = "વાણી વિચારી રહી છે...";
-            
             fetchGeminiResponse(transcript);
         };
 
         recognition.onerror = (event) => {
             statusText.innerText = "અવાજ પકડાયો નહીં. ફરી પ્રયત્ન કરો.";
-            statusText.style.color = "red";
         };
 
         async function fetchGeminiResponse(text) {
             const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`;
-            
-            const promptText = "તારું નામ વાણી (Vani) છે. તું એક હોશિયાર, નમ્ર અને મીઠી ભાષામાં વાત કરતી આસિસ્ટન્ટ છે. તારે ટૂંકમાં અને સ્પષ્ટ ગુજરાતીમાં જ જવાબ આપવાનો છે. મારો પ્રશ્ન: " + text;
-
-            const data = {
-                contents: [{ parts: [{ text: promptText }] }]
-            };
+            const data = { contents: [{ parts: [{ text: "તારું નામ વાણી છે. ટૂંકમાં ગુજરાતીમાં જવાબ આપ. પ્રશ્ન: " + text }] }] };
 
             try {
                 const response = await fetch(url, {
@@ -123,36 +81,32 @@
                     body: JSON.stringify(data)
                 });
                 
+                const result = await response.json();
+                
                 if (!response.ok) {
-                    throw new Error("API Key એરર");
+                    // જો ગુગલ એરર આપે, તો સાચી એરર સ્ક્રીન પર દેખાશે
+                    throw new Error(result.error ? result.error.message : "અજ્ઞાત ભૂલ");
                 }
 
-                const result = await response.json();
                 const aiText = result.candidates[0].content.parts[0].text;
-                
                 jarvisResponse.innerText = aiText;
                 statusText.innerText = "જવાબ તૈયાર છે!";
-                
                 speakText(aiText);
                 
             } catch (error) {
-                jarvisResponse.innerText = "ઇન્ટરનેટ કનેક્શન કે API કી ચેક કરો.";
+                // એરર મેસેજ સ્ક્રીન પર પ્રિન્ટ થશે
+                jarvisResponse.innerText = "ભૂલ: " + error.message;
             }
         }
 
         function speakText(text) {
-            let voices = window.speechSynthesis.getVoices();
             const speech = new SpeechSynthesisUtterance();
             speech.text = text;
             speech.lang = 'gu-IN'; 
-            speech.pitch = 1.4; // મધુર અને સ્ત્રી જેવો અવાજ
+            speech.pitch = 1.4; 
             speech.rate = 1.0;  
             window.speechSynthesis.speak(speech);
         }
-
-        window.speechSynthesis.onvoiceschanged = function() {
-            window.speechSynthesis.getVoices();
-        };
     </script>
 </body>
 </html>
